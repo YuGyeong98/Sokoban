@@ -19,7 +19,7 @@ public class Baggage extends Actor {//Actor클래스를 상속받는다.
     }
 
     public void move(int x, int y) {//움직일 수 있기때문에 move()메소드가 존재한다.
-        
+    
         int dx = x() + x;//x() = Actor클래스에서 가져와서 사용
         int dy = y() + y;
         

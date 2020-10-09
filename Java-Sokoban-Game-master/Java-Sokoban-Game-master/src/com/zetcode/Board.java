@@ -11,8 +11,8 @@ public class Board extends JPanel{
 	
 	private static final long serialVersionUID = 1L;
 	
-	private final int OFFSET = 30;//윈도우 창의 테두리와 게임 사이의 가로 거리
-    private final int SPACE = 20;//20*20px(벽 이미지 사이즈)
+	private final int OFFSET = 35;//윈도우 창의 테두리와 게임 사이의 가로 거리
+    private final int SPACE = 32;//(벽 이미지 사이즈)
    
     private final int LEFT_COLLISION = 1;//왼쪽 충돌
     private final int RIGHT_COLLISION = 2;//오른쪽 충돌
@@ -23,24 +23,32 @@ public class Board extends JPanel{
     private ArrayList<Wall> walls;//walls를 담을 수 있는 컨테이너
     private ArrayList<Baggage> baggs;//baggs를 담을 수 있는 컨테이너
     private ArrayList<Area> areas;//areas를 담을 수 있는 컨테이너
+    private ArrayList<Coin> coins;
+    
+    public int currentSteps;//이동횟수
+    public int currentboxes;//남은 짐
+    private Header header;
+    private Score score;
+    private Timer timer;
+    private Score currentScore;
     
     private Player soko;
     private int w = 0;//width
     private int h = 0;//height
     
-    private boolean isCompleted = false;//실패 
+    private boolean isCompleted = false;
 //#=벽(wall), $=이동할 상자(baggage), .=우리가 박스를 옮겨야 할 장소(area), @=소코반(sokoban)
     private String level =
               "    ######\n"
             + "    ##   #\n"
-            + "    ##$  #\n"
+            + "    ##$ ^#\n"
             + "  ####  $##\n"
             + "  ##  $ $ #\n"
             + "#### # ## #   ######\n"
-            + "##   # ## #####  ..#\n"
+            + "##  ^# ## #####  ..#\n"
             + "## $  $          ..#\n"
             + "###### ### #@##  ..#\n"
-            + "    ##     #########\n"
+            + "    ## ^   #########\n"
             + "    ########\n";
     
     public Board() {
@@ -49,7 +57,6 @@ public class Board extends JPanel{
     }
 
     private void initBoard() {
-
         addKeyListener(new TAdapter());
         setFocusable(true);
         initWorld();
@@ -62,7 +69,7 @@ public class Board extends JPanel{
     public int getBoardHeight() {
         return this.h;
     }
-
+ 
     private void initWorld() {
     	//게임을 진행하면서  walls,baggs,areas컨테이너를 채운다.
     	
@@ -70,16 +77,18 @@ public class Board extends JPanel{
         walls = new ArrayList<>();//new에서 타입 생략 가능/ Wall객체들만 사용 가능
         baggs = new ArrayList<>();
         areas = new ArrayList<>();
-
+        coins = new ArrayList<>();
+        
         int x = OFFSET;
         int y = OFFSET;
 
         Wall wall;
         Baggage b;
         Area a;
-
+        Coin c;
+        
         for (int i = 0; i < level.length(); i++) {
-
+        	
             char item = level.charAt(i);//문자열에서 인자로 주어진 값에 해당하는 문자를 리턴한다.
 
             switch (item) {
@@ -90,7 +99,6 @@ public class Board extends JPanel{
                     if (this.w < x) {
                         this.w = x;
                     }
-
                     x = OFFSET;
                     break;
 
@@ -104,6 +112,7 @@ public class Board extends JPanel{
                     b = new Baggage(x, y);
                     baggs.add(b);//baggs컨테이너에 b추가
                     x += SPACE;//x위치에 20만큼 더한다.
+                    addbox();
                     break;
 
                 case '.':
@@ -111,7 +120,13 @@ public class Board extends JPanel{
                     areas.add(a);
                     x += SPACE;
                     break;
-
+                    
+                case '^':
+                	c = new Coin(x, y);
+                	coins.add(c);
+                	x += SPACE;
+                	break;
+                	
                 case '@':
                     soko = new Player(x, y);
                     x += SPACE;
@@ -124,44 +139,66 @@ public class Board extends JPanel{
                 default:
                     break;
             }
-
             h = y;
         }
     }
-
+    
+    
     private void buildWorld(Graphics g) {
     	//게임을 윈도우에 그린다.
 
-        g.setColor(new Color(250, 240, 170));
+        g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
         //좌표 (0,0)에 크기만큼 사각형을 그린다.
-        ArrayList<Actor> world = new ArrayList<>();
-        //world = 게임의 모든 객체를 포함
-        world.addAll(walls);
-        world.addAll(areas);
-        world.addAll(baggs);
-        world.add(soko);
-        //컨테이너를 통해 반복해서 물체를 그린다. 플레이어와 baggage이미지들은 조금 작아서 좌표에 2px를 더해서 중심을 잡는다.
-        for (int i = 0; i < world.size(); i++) {
-
-            Actor item = world.get(i);//컨테이너들을 반복해서 빼낸다.
-
-            if (item instanceof Player || item instanceof Baggage) {
-                
-                g.drawImage(item.getImage(), item.x() + 2, item.y() + 2, this);
-            } else {
-                
-                g.drawImage(item.getImage(), item.x(), item.y(), this);
-            }
-
-            if (isCompleted) {//레벨이 끝나면, "Completed"를 윈도우 창 왼쪽 상단 모서리에 그린다.
-                
-                g.setColor(new Color(0, 0, 0));
-                g.drawString("Completed", 25, 20);
-            }
-
-        }
+        
+        header = new Header();
+        header.UpdateSteps(getCurrentSteps());
+        header.Updateboxes(getCurrentboxes());
+        header.render(g);
+        
+        score = new Score("C:\\Users\\USER\\eclipse-workspace\\scoreboard.txt");
+        score.render(g);
+        
+        timer = new Timer();
+        timer.render(g);
+        
+	    ArrayList<Actor> world = new ArrayList<>();
+	    //world = 게임의 모든 객체를 포함
+	    world.addAll(walls);
+	    world.addAll(areas);
+	    world.addAll(baggs);
+	    world.addAll(coins);
+	    world.add(soko);
+	    //컨테이너를 통해 반복해서 물체를 그린다. 플레이어와 baggage이미지들은 조금 작아서 좌표에 2px를 더해서 중심을 잡는다.
+	    for (int i = 0; i < world.size(); i++) {
+	
+	        Actor item = world.get(i);//컨테이너들을 반복해서 빼낸다.
+	
+	        if (item instanceof Area) {
+	            g.drawImage(item.getImage(), item.x() + 8, item.y() + 8, this);
+	        } 
+	        else if(item instanceof Player) {
+	        	g.drawImage(item.getImage(), item.x() + 7, item.y() + 1, this);
+	        }
+	        else {
+	            g.drawImage(item.getImage(), item.x(), item.y(), this);
+	        }
+	
+	        if (isCompleted) {//레벨이 끝나면, "Completed"를 윈도우 창 왼쪽 상단 모서리에 그린다.
+	            g.setColor(Color.WHITE);
+	            g.drawString("Completed", 25, 20);
+	        }  
+	    }
+	    
+	    for(int i=0;i<coins.size();i++) {
+	    	Coin coin = coins.get(i);
+	    	if(soko.getRect().intersects(coin.getRect())){
+	    		currentScore.score += 10;
+	    		coins.remove(i);
+	    	}
+	    }
     }
+      
 
     @Override
     public void paintComponent(Graphics g) {
@@ -169,7 +206,8 @@ public class Board extends JPanel{
         //컴포넌트가 그리져야 하는 시점마다, 크기가 변경되거나 위치가 변경되거나 컴포넌트가 가려졌던 것이 사라지는 등
         buildWorld(g);
     }
-
+    
+    
     private class TAdapter extends KeyAdapter {//키 입력받기
 
         @Override
@@ -187,78 +225,82 @@ public class Board extends JPanel{
 
             int key = e.getKeyCode();
 
-            switch (key) {//어떤 키가 눌러졌는지 확인한다. 우리는 cursor키를 통해 소코반물체를 제어한다.
-            	//왼쪽을 눌렀다면, 소코반이 wall이나 baggage에 충돌했는지 체크한다. 충돌하지 않았다면, 소코반을 왼쪽으로 옮긴다.
-                case KeyEvent.VK_LEFT:
-                	
-                    if (checkWallCollision(soko, LEFT_COLLISION)) {
-                        return;
-                    }
-                    
-                    if (checkBagCollision(LEFT_COLLISION)) {
-                        return;
-                    }
-                    
-                    soko.move(-SPACE, 0);
-                    
-                    break;
-                    
-                case KeyEvent.VK_RIGHT:
-                    
-                    if (checkWallCollision(soko, RIGHT_COLLISION)) {
-                        return;
-                    }
-                    
-                    if (checkBagCollision(RIGHT_COLLISION)) {
-                        return;
-                    }
-                    
-                    soko.move(SPACE, 0);
-                    
-                    break;
-                    
-                case KeyEvent.VK_UP:
-                    
-                    if (checkWallCollision(soko, TOP_COLLISION)) {
-                        return;
-                    }
-                    
-                    if (checkBagCollision(TOP_COLLISION)) {
-                        return;
-                    }
-                    
-                    soko.move(0, -SPACE);
-                    
-                    break;
-                    
-                case KeyEvent.VK_DOWN:
-                    
-                    if (checkWallCollision(soko, BOTTOM_COLLISION)) {
-                        return;
-                    }
-                    
-                    if (checkBagCollision(BOTTOM_COLLISION)) {
-                        return;
-                    }
-                    
-                    soko.move(0, SPACE);
-                    
-                    break;
-                    
-                case KeyEvent.VK_R://R키를 누르면 레벨을 재시작한다.
-                    
-                    restartLevel();
-                    
-                    break;
-                    
-                default:
-                    break;
-            }
-
-            repaint();//화면이 다시 그려지도록 요청
-        }
+            	 switch (key) {//어떤 키가 눌러졌는지 확인한다. 우리는 cursor키를 통해 소코반물체를 제어한다.
+             	//왼쪽을 눌렀다면, 소코반이 wall이나 baggage에 충돌했는지 체크한다. 충돌하지 않았다면, 소코반을 왼쪽으로 옮긴다.
+                 case KeyEvent.VK_LEFT:
+                 	
+                     if (checkWallCollision(soko, LEFT_COLLISION)) {
+                         return;
+                     }
+                     
+                     if (checkBagCollision(LEFT_COLLISION)) {
+                         return;
+                     }
+                     
+                     soko.move(-SPACE, 0);
+                     addStep();
+                     
+                     break;
+                     
+                 case KeyEvent.VK_RIGHT:
+                     
+                     if (checkWallCollision(soko, RIGHT_COLLISION)) {
+                         return;
+                     }
+                     
+                     if (checkBagCollision(RIGHT_COLLISION)) {
+                         return;
+                     }
+                     
+                     soko.move(SPACE, 0);
+                     addStep();
+                     
+                     break;
+                     
+                 case KeyEvent.VK_UP:
+                     
+                     if (checkWallCollision(soko, TOP_COLLISION)) {
+                         return;
+                     }
+                     
+                     if (checkBagCollision(TOP_COLLISION)) {
+                         return;
+                     }
+                     
+                     soko.move(0, -SPACE);
+                     addStep();
+                     break;
+                     
+                 case KeyEvent.VK_DOWN:
+                     
+                     if (checkWallCollision(soko, BOTTOM_COLLISION)) {
+                         return;
+                     }
+                     
+                     if (checkBagCollision(BOTTOM_COLLISION)) {
+                         return;
+                     }
+                     
+                     soko.move(0, SPACE);
+                     addStep();
+                     break;
+                     
+                 case KeyEvent.VK_R://R키를 누르면 레벨을 재시작한다.
+                     restartLevel();
+                     resetSteps();
+                     
+                     break;
+                     
+                 default:
+                     break;
+             }
+            	 
+             repaint();//화면이 다시 그려지도록 요청
+      }
+           
     }
-
+    
+    
     private boolean checkWallCollision(Actor actor, int type) {
     	//소코반이나 baggage가 벽을 통과하지 않도록 만들어졌다.
         switch (type) {
@@ -271,11 +313,11 @@ public class Board extends JPanel{
                     
                     if (actor.isLeftCollision(wall)) {
                         
-                        return true;//성공
+                        return true;
                     }
                 }
                 
-                return false;//실패
+                return false;
                 
             case RIGHT_COLLISION:
                 
@@ -321,7 +363,6 @@ public class Board extends JPanel{
             default:
                 break;
         }
-        
         return false;
     }
 
@@ -472,7 +513,7 @@ public class Board extends JPanel{
             Baggage bag = baggs.get(i);
             
             for (int j = 0; j < nOfBags; j++) {
-                
+                 
                 Area area =  areas.get(j);
                 
                 if (bag.x() == area.x() && bag.y() == area.y()) {
@@ -501,4 +542,35 @@ public class Board extends JPanel{
             isCompleted = false;
         }
     }
+    
+    public int getCurrentSteps() {
+    	return this.currentSteps;
+    }
+    public void addStep() {
+    	this.currentSteps++;
+    }
+    public void setCurrentSteps(int i) {
+    	this.currentSteps = i;
+    }
+    public void resetSteps() {
+    	this.currentSteps = 0;
+    }
+    
+    public int getCurrentboxes() {
+    	return this.currentboxes;
+    }
+    public void addbox() {
+    	this.currentboxes++;
+    }
+    public void setCurrentboxes(int i) {
+    	this.currentboxes = i;
+    }
+    public void resetboxes() {
+//    	this.currentboxes = 0;
+    }
+    public void subbox() {
+    	this.currentboxes--;
+    }
+    
+   
 }

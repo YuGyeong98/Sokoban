@@ -1,10 +1,11 @@
 package com.zetcode;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 
 public class Actor{
 
-	private final int SPACE = 20;
+	private final int SPACE = 32;
 
     private int x;
     private int y;
@@ -61,5 +62,9 @@ public class Actor{
     public boolean isBottomCollision(Actor actor) {
         
         return y() + SPACE == actor.y() && x() == actor.x();
+    }
+    
+    public Rectangle getRect() {
+    	return new Rectangle(x(),y(),32,32);
     }
 }
