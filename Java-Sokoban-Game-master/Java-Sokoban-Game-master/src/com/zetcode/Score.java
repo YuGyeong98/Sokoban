@@ -3,11 +3,14 @@ package com.zetcode;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Score {
 	File scoreboard;
@@ -21,9 +24,10 @@ public class Score {
 		fileName = "C:\\Users\\USER\\eclipse-workspace\\scoreboard.txt";
 		scoreboard = new File(fileName);
 		try {
-			bw = new BufferedWriter(new FileWriter(fileName));
+			bw = new BufferedWriter(new FileWriter(fileName,true));
 			for(int i=0;i<scores.size();i++) {
 				bw.write("Score: "+scores.get(i));
+				bw.newLine();
 			}
 			bw.flush();
 			bw.close();
@@ -31,7 +35,6 @@ public class Score {
 			e.printStackTrace();
 		}
 	}
-	
 	
 	public void render(Graphics g) {
 		g.setColor(Color.WHITE);
