@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 public class Sokoban extends JFrame {//main 클래스
 	 
 	private static final long serialVersionUID = 1L;
-
+	
     public Sokoban() {
         initUI();
     }
@@ -14,8 +14,6 @@ public class Sokoban extends JFrame {//main 클래스
     private void initUI() {
         Board board = new Board();
         add(board);
-        GameOver gameover = new GameOver();
-        add(gameover);
     }
     
     public static void main(String[] args) { 

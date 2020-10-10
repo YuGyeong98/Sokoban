@@ -12,13 +12,16 @@ public class Intro extends JFrame{
 	
 	ViewController controller;
 	
+	Sound sound = new Sound("src/resources/game.wav",-1);
 	Board board = new Board();
+	
 	public Intro() {
 		setTitle("Sokoban");
 		setSize(board.getBoardWidth() + 35, board.getBoardHeight() + 2 * 35);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);//프레임을 화면 가운데에 배치
         setVisible(true);
+        sound.play();
         controller = new ViewController(this);
 	}
 }

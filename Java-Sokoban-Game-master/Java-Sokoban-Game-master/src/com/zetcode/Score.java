@@ -32,18 +32,6 @@ public class Score {
 		}
 	}
 	
-//	public void reader(Graphics g) {
-//		try {
-//			FileReader fr = new FileReader();
-//			BufferedReader br = new BufferedReader(fr);
-//			temp = br.read();
-//			g.drawString(String.valueOf(temp), 640, 130);	
-//			br.close();
-//		}
-//		catch(IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 	
 	public void render(Graphics g) {
 		g.setColor(Color.WHITE);

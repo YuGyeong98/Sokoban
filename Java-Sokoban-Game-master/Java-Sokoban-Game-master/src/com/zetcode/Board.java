@@ -15,15 +15,14 @@ public class Board extends JPanel{
 	private final int OFFSET = 35;//윈도우 창의 테두리와 게임 사이의 가로 거리
     private final int SPACE = 32;//(벽 이미지 사이즈)
    
-    private final int LEFT_COLLISION = 5;//왼쪽 충돌
-    private final int RIGHT_COLLISION = 6;//오른쪽 충돌
-    private final int TOP_COLLISION = 7;//상단 충돌
-    private final int BOTTOM_COLLISION = 8;//하단 충돌 
+    private final int LEFT_COLLISION = 5;
+    private final int RIGHT_COLLISION = 6;
+    private final int TOP_COLLISION = 7;
+    private final int BOTTOM_COLLISION = 8;
   
-//ArrayList - 크기가 가변적(자동적)으로 변하는 선형리스트/ ArrayList<타입설정>
-    private ArrayList<Wall> walls;//walls를 담을 수 있는 컨테이너
-    private ArrayList<Baggage> baggs;//baggs를 담을 수 있는 컨테이너
-    private ArrayList<Area> areas;//areas를 담을 수 있는 컨테이너
+    private ArrayList<Wall> walls;
+    private ArrayList<Baggage> baggs;
+    private ArrayList<Area> areas;
     private ArrayList<Coin> coins;
     
     public int currentSteps;
@@ -33,8 +32,8 @@ public class Board extends JPanel{
     private int score = 0;
     
     private Player soko;
-    private int w = 0;//width
-    private int h = 0;//height
+    private int w = 0;
+    private int h = 0;
     
     private boolean isCompleted = false;
     
@@ -43,7 +42,7 @@ public class Board extends JPanel{
     private final int up = 2;
     private final int down = 3;
     
-    private int spd = 20;
+    private int spd = 32;
     
     private int smart = 1;
     private int find_path = 2;
@@ -51,8 +50,7 @@ public class Board extends JPanel{
     
     private Enemy enemy;
     private boolean isSokoDead = false;
-
-//#=벽(wall), $=이동할 상자(baggage), .=우리가 박스를 옮겨야 할 장소(area), @=소코반(sokoban)
+    
     private String level =
               "    ######\n"
             + "    ##   #\n"
@@ -212,8 +210,7 @@ public class Board extends JPanel{
 	        }
 	        
 	        if (isSokoDead) {
-            	g.setColor(Color.WHITE);
-            	g.drawString("You Died", 25, 20);
+            	gameOver(g);
             }
 	    }
 	    
@@ -590,11 +587,13 @@ public class Board extends JPanel{
     
     public void coinCheck() {
     	for(int i=0;i<coins.size();i++) {
+    		Sound sound = new Sound("src/resources/coin.wav",0);
 	    	Coin coin = coins.get(i);
 	    	if(soko.getRect().intersects(coin.getRect())){
 	    		score += 10;
 	    		currentScore.save(score);
 	    		coins.remove(i);
+	    		sound.play();
 	    		break;
 	    	}
 	    }
@@ -792,5 +791,17 @@ public class Board extends JPanel{
     	}
     }
     
-   
+    public void gameOver(Graphics g) {
+    	g.setColor(Color.BLACK);
+        g.fillRect(0, 0, this.getWidth(), this.getHeight());
+    	g.setColor(Color.YELLOW);
+    	g.setFont(new Font("DOSMyungjo",Font.BOLD,40));
+		g.drawString("Game Over", 255, 120);
+		g.setFont(new Font("DOSMyungjo",Font.PLAIN,30));
+		g.drawString("Score: ", 273, 200);
+		g.drawString(String.valueOf(score),390,200);
+		g.setFont(new Font("DOSMyungjo",Font.PLAIN,20));
+		g.drawString(">> Press enter to restart game <<", 183, 300);
+    }
+    
 }

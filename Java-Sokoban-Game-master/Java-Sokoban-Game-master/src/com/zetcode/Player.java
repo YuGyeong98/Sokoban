@@ -4,7 +4,7 @@ import java.awt.Image;
 
 import javax.swing.ImageIcon;
 
-public class Player extends Actor{//Actor클래스를 상속받는다
+public class Player extends Actor{
 	
     public Player(int x, int y) {
         super(x, y);
@@ -17,7 +17,7 @@ public class Player extends Actor{//Actor클래스를 상속받는다
         setImage(image);
     }
 
-    public void move(int x, int y) {//게임안에서 물체를 움직인다.
+    public void move(int x, int y) {
     	
         int dx = x() + x;
         int dy = y() + y;

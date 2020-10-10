@@ -19,10 +19,10 @@ public class IntroKeyEvent implements KeyListener{
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
-		if(e.getKeyCode()==38) {//방향키 위쪽
+		if(e.getKeyCode()==38) {
 			intropanel.select = 0;
 		}
-		else if(e.getKeyCode()==40) {//아래쪽
+		else if(e.getKeyCode()==40) {
 			intropanel.select = 1;
 		}
 		else if(e.getKeyCode()==10) {//엔터
