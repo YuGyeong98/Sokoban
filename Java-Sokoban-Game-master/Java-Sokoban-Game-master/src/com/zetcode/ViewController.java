@@ -11,6 +11,7 @@ public class ViewController {
 		this.intro = intro;
 		init();
 	}
+	
 	private void init() {
 		introPanel = new IntroPanel(this);
 		contentPane = intro.getContentPane();

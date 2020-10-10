@@ -1,6 +1,7 @@
 package com.zetcode;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -14,10 +15,10 @@ public class Board extends JPanel{
 	private final int OFFSET = 35;//윈도우 창의 테두리와 게임 사이의 가로 거리
     private final int SPACE = 32;//(벽 이미지 사이즈)
    
-    private final int LEFT_COLLISION = 1;//왼쪽 충돌
-    private final int RIGHT_COLLISION = 2;//오른쪽 충돌
-    private final int TOP_COLLISION = 3;//상단 충돌
-    private final int BOTTOM_COLLISION = 4;//하단 충돌 
+    private final int LEFT_COLLISION = 5;//왼쪽 충돌
+    private final int RIGHT_COLLISION = 6;//오른쪽 충돌
+    private final int TOP_COLLISION = 7;//상단 충돌
+    private final int BOTTOM_COLLISION = 8;//하단 충돌 
   
 //ArrayList - 크기가 가변적(자동적)으로 변하는 선형리스트/ ArrayList<타입설정>
     private ArrayList<Wall> walls;//walls를 담을 수 있는 컨테이너
@@ -25,18 +26,32 @@ public class Board extends JPanel{
     private ArrayList<Area> areas;//areas를 담을 수 있는 컨테이너
     private ArrayList<Coin> coins;
     
-    public int currentSteps;//이동횟수
-    public int currentboxes;//남은 짐
+    public int currentSteps;
     private Header header;
-    private Score score;
     private Timer timer;
     private Score currentScore;
+    private int score = 0;
     
     private Player soko;
     private int w = 0;//width
     private int h = 0;//height
     
     private boolean isCompleted = false;
+    
+    private final int right = 0;
+    private final int left = 1;
+    private final int up = 2;
+    private final int down = 3;
+    
+    private int spd = 20;
+    
+    private int smart = 1;
+    private int find_path = 2;
+    private int state = smart;
+    
+    private Enemy enemy;
+    private boolean isSokoDead = false;
+
 //#=벽(wall), $=이동할 상자(baggage), .=우리가 박스를 옮겨야 할 장소(area), @=소코반(sokoban)
     private String level =
               "    ######\n"
@@ -45,7 +60,7 @@ public class Board extends JPanel{
             + "  ####  $##\n"
             + "  ##  $ $ #\n"
             + "#### # ## #   ######\n"
-            + "##  ^# ## #####  ..#\n"
+            + "##! ^# ## #####  ..#\n"
             + "## $  $          ..#\n"
             + "###### ### #@##  ..#\n"
             + "    ## ^   #########\n"
@@ -112,7 +127,6 @@ public class Board extends JPanel{
                     b = new Baggage(x, y);
                     baggs.add(b);//baggs컨테이너에 b추가
                     x += SPACE;//x위치에 20만큼 더한다.
-                    addbox();
                     break;
 
                 case '.':
@@ -131,6 +145,11 @@ public class Board extends JPanel{
                     soko = new Player(x, y);
                     x += SPACE;
                     break;
+                    
+                case '!':
+                	enemy = new Enemy(x, y);
+                	x += SPACE;
+                	break;
 
                 case ' ':
                     x += SPACE;
@@ -149,15 +168,17 @@ public class Board extends JPanel{
 
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, this.getWidth(), this.getHeight());
-        //좌표 (0,0)에 크기만큼 사각형을 그린다.
         
         header = new Header();
         header.UpdateSteps(getCurrentSteps());
-        header.Updateboxes(getCurrentboxes());
         header.render(g);
         
-        score = new Score("C:\\Users\\USER\\eclipse-workspace\\scoreboard.txt");
-        score.render(g);
+        leftbaggs(g);
+        coinCheck();
+       
+        currentScore = new Score();
+        currentScore.render(g);
+        g.drawString(String.valueOf(score), 640, 130);
         
         timer = new Timer();
         timer.render(g);
@@ -169,7 +190,8 @@ public class Board extends JPanel{
 	    world.addAll(baggs);
 	    world.addAll(coins);
 	    world.add(soko);
-	    //컨테이너를 통해 반복해서 물체를 그린다. 플레이어와 baggage이미지들은 조금 작아서 좌표에 2px를 더해서 중심을 잡는다.
+	    world.add(enemy);
+	    
 	    for (int i = 0; i < world.size(); i++) {
 	
 	        Actor item = world.get(i);//컨테이너들을 반복해서 빼낸다.
@@ -177,36 +199,32 @@ public class Board extends JPanel{
 	        if (item instanceof Area) {
 	            g.drawImage(item.getImage(), item.x() + 8, item.y() + 8, this);
 	        } 
-	        else if(item instanceof Player) {
+	        else if(item instanceof Player || item instanceof Enemy) {
 	        	g.drawImage(item.getImage(), item.x() + 7, item.y() + 1, this);
 	        }
-	        else {
+	        else{
 	            g.drawImage(item.getImage(), item.x(), item.y(), this);
 	        }
 	
 	        if (isCompleted) {//레벨이 끝나면, "Completed"를 윈도우 창 왼쪽 상단 모서리에 그린다.
 	            g.setColor(Color.WHITE);
 	            g.drawString("Completed", 25, 20);
-	        }  
+	        }
+	        
+	        if (isSokoDead) {
+            	g.setColor(Color.WHITE);
+            	g.drawString("You Died", 25, 20);
+            }
 	    }
 	    
-	    for(int i=0;i<coins.size();i++) {
-	    	Coin coin = coins.get(i);
-	    	if(soko.getRect().intersects(coin.getRect())){
-	    		currentScore.score += 10;
-	    		coins.remove(i);
-	    	}
-	    }
     }
-      
-
+    
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);//super는 부모 클래스로부터 상속받은 필드나 메소드를 자식 클래스에서 참조하는 데 사용하는 참조 변수
+        super.paintComponent(g);
         //컴포넌트가 그리져야 하는 시점마다, 크기가 변경되거나 위치가 변경되거나 컴포넌트가 가려졌던 것이 사라지는 등
         buildWorld(g);
     }
-    
     
     private class TAdapter extends KeyAdapter {//키 입력받기
 
@@ -215,12 +233,10 @@ public class Board extends JPanel{
 
             if (isCompleted) {
                 return;
-                //1. 되돌린다
-                //어셈블러 수준에서 코드의 수행순서가 결정되는 부분
-                //2. 아무것도 없는것을
-                //스택에 어떤 값도 저장하지 않는것을 의미
-                //3. 문장의 끝
-                //컴파일러에게 문장이 끝났으니 새로운 문장의 해석을 준비할것을 알려준다.
+            }
+            
+            if (isSokoDead) {
+            	return;
             }
 
             int key = e.getKeyCode();
@@ -239,6 +255,8 @@ public class Board extends JPanel{
                      
                      soko.move(-SPACE, 0);
                      addStep();
+                     tick();
+                     isSokoDead();
                      
                      break;
                      
@@ -254,6 +272,8 @@ public class Board extends JPanel{
                      
                      soko.move(SPACE, 0);
                      addStep();
+                     tick();
+                     isSokoDead();
                      
                      break;
                      
@@ -269,6 +289,9 @@ public class Board extends JPanel{
                      
                      soko.move(0, -SPACE);
                      addStep();
+                     tick();
+                     isSokoDead();
+                     
                      break;
                      
                  case KeyEvent.VK_DOWN:
@@ -283,19 +306,23 @@ public class Board extends JPanel{
                      
                      soko.move(0, SPACE);
                      addStep();
+                     tick();
+                     isSokoDead();
+                     
                      break;
                      
                  case KeyEvent.VK_R://R키를 누르면 레벨을 재시작한다.
                      restartLevel();
                      resetSteps();
-                     
+                     score = 0;
+                     currentScore.save(score);
                      break;
                      
                  default:
                      break;
              }
             	 
-             repaint();//화면이 다시 그려지도록 요청
+             repaint();
       }
            
     }
@@ -506,8 +533,9 @@ public class Board extends JPanel{
     	//레벨이 끝났는지 확인한다.
     	//baggage의 수를 얻을 수 있다. 모든 baggage의 (x,y)좌표와 목적지를 비교한다.
         int nOfBags = baggs.size();
+        
         int finishedBags = 0;
-
+       
         for (int i = 0; i < nOfBags; i++) {
             
             Baggage bag = baggs.get(i);
@@ -529,7 +557,7 @@ public class Board extends JPanel{
             repaint();
         }
     }
-
+    
     private void restartLevel() {//재시작
 
         areas.clear();
@@ -537,9 +565,13 @@ public class Board extends JPanel{
         walls.clear();
 
         initWorld();
-
+        state = smart;
+        
         if (isCompleted) {
             isCompleted = false;
+        }
+        if (isSokoDead) {
+        	isSokoDead = false;
         }
     }
     
@@ -556,20 +588,208 @@ public class Board extends JPanel{
     	this.currentSteps = 0;
     }
     
-    public int getCurrentboxes() {
-    	return this.currentboxes;
+    public void coinCheck() {
+    	for(int i=0;i<coins.size();i++) {
+	    	Coin coin = coins.get(i);
+	    	if(soko.getRect().intersects(coin.getRect())){
+	    		score += 10;
+	    		currentScore.save(score);
+	    		coins.remove(i);
+	    		break;
+	    	}
+	    }
     }
-    public void addbox() {
-    	this.currentboxes++;
+    
+    public void leftbaggs(Graphics g) {
+    	int nOfBags = baggs.size();
+    	int leftover = baggs.size();
+    	
+    	for (int i = 0; i < nOfBags; i++) {
+            
+            Baggage bag = baggs.get(i);
+            
+            for (int j = 0; j < nOfBags; j++) {
+                 
+                Area area =  areas.get(j);
+                
+                if (bag.x() == area.x() && bag.y() == area.y()) {
+            		leftover -= 1;
+                }
+            }
+        }
+    	g.setFont(new Font("나눔고딕",Font.PLAIN,22));
+		g.setColor(Color.WHITE);
+		g.drawString("Leftboxes: ", 500, 70);
+		g.drawString(Integer.toString(leftover), 640, 70);
     }
-    public void setCurrentboxes(int i) {
-    	this.currentboxes = i;
+    
+    public boolean canEnemyMove(int next_x, int next_y){
+    	for (int i = 0; i < walls.size(); i++) {
+    		Wall wall = walls.get(i);
+    		if(wall.x() == next_x && wall.y() == next_y) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
     }
-    public void resetboxes() {
-//    	this.currentboxes = 0;
+    
+    public void tick() {
+    	 
+    boolean move = false;
+    while(true) {
+    	if(state == smart) {
+        	if(enemy.x() < soko.x()) {
+        		if(canEnemyMove(enemy.x()+spd, enemy.y())) {
+            		enemy.move(spd, 0);
+            		move = true;
+            		enemy.lastDir = right;
+            		System.out.println("smart right");
+            		break;
+            	}
+        	}
+        	
+        	else if(enemy.x() > soko.x()) {
+        		if(canEnemyMove(enemy.x()-spd, enemy.y())) {
+        			enemy.move(-spd, 0);
+            		move = true;
+        			enemy.lastDir = left;
+        			System.out.println("smart left");
+        			break;
+        		}
+        	}
+        	 	
+        	if(enemy.y() < soko.y()) {
+        		if(canEnemyMove(enemy.x(), enemy.y()+spd)) {
+        			enemy.move(0, spd);
+            		move = true;
+        			enemy.lastDir = down;
+        			System.out.println("smart down");
+        			break;
+        		}
+        	}
+        	
+        	else if(enemy.y() > soko.y()) {
+        		if(canEnemyMove(enemy.x(), enemy.y()-spd)) {
+        			enemy.move(0, -spd);
+            		move = true;
+        			enemy.lastDir = up;
+        			System.out.println("smart up");
+        			break;
+        		}
+        	}
+
     }
-    public void subbox() {
-    	this.currentboxes--;
+    
+    	
+    	if(!move) {
+    		state = find_path;
+    		if(state == find_path) {
+    	    	if(enemy.lastDir == right) {
+    	    		
+    	    		if(enemy.y() < soko.y()) {
+    	    			if(canEnemyMove(enemy.x(), enemy.y() + spd)) {
+    	    				enemy.move(0, spd);
+    	    				System.out.println("find down(right)");
+    	    				state = smart;
+
+    	    			}
+    	    		}
+    	    		else {
+    	    			if(canEnemyMove(enemy.x(),enemy.y() - spd)) {
+    	    				enemy.move(0, -spd);
+    	    				System.out.println("find up(right)");
+    	    				state = smart;
+    	    			}
+    	    		}
+    	    		
+    	    		if(canEnemyMove(enemy.x() + spd, enemy.y())) {
+    	    			enemy.move(spd, 0);
+    					System.out.println("find right(right)");
+    					state = smart;
+    	    		}
+    	          }
+    	    	
+    	    	else if(enemy.lastDir == left) {
+    	    		if(enemy.y() < soko.y()) {
+    	    			if(canEnemyMove(enemy.x(), enemy.y() + spd)) {
+    	    				enemy.move(0, spd);
+    	    				System.out.println("find down(left)");
+    	    				state = smart;
+    	    			}
+    	    		}
+    	    		else {
+    	    			if(canEnemyMove(enemy.x(),enemy.y() - spd)) {
+    	    				enemy.move(0, -spd);
+    	    				System.out.println("find up(left)");
+    	    				state = smart;
+    	    			}
+    	    		}
+    	    		
+    	    		if(canEnemyMove(enemy.x() - spd, enemy.y())) {
+    	    			enemy.move(-spd, 0);
+    					System.out.println("find left(left)");
+    					state = smart;
+    	    		}
+    	          }
+    	    	
+    	          else if(enemy.lastDir == up) {
+    	        	  if(enemy.x() < soko.x()) {
+    	      			if(canEnemyMove(enemy.x() + spd, enemy.y())) {
+    	      				enemy.move(spd, 0);
+    	    				System.out.println("find right(up)");
+    	    				state = smart;
+    	      			}
+    	      		}
+    	      		else {
+    	      			if(canEnemyMove(enemy.x() - spd,enemy.y())) {
+    	      				enemy.move(-spd, 0);
+    	    				System.out.println("find left(up)");
+    	    				state = smart;
+    	      			}
+    	      		}
+    	      		
+    	      		if(canEnemyMove(enemy.x(), enemy.y() - spd)) {
+    	      			enemy.move(0, -spd);
+    					System.out.println("find up(up)");
+    					state = smart;
+    	      		}
+    	          }
+    	    	
+    	          else if(enemy.lastDir == down) {
+    	        	  if(enemy.x() < soko.x()) {
+    	      			if(canEnemyMove(enemy.x() + spd, enemy.y())) {
+    	      				enemy.move(spd, 0);
+    	    				System.out.println("find right(down)");
+    	    				state = smart;
+    	      			}
+    	      		}
+    	      		else {
+    	      			if(canEnemyMove(enemy.x() - spd, enemy.y())) {
+    	      				enemy.move(-spd, 0);
+    	    				System.out.println("find left(down)");
+    	    				state = smart;
+    	      			}
+    	      		}
+    	      		
+    	      		if(canEnemyMove(enemy.x(), enemy.y() + spd)) {
+    	      			enemy.move(0, spd);
+    					System.out.println("find down(down)");
+    					state = smart;
+    	      		}          
+    	          }
+    	    	}
+    	}
+
+    }
+
+    }
+    
+    public void isSokoDead() {
+    	if(enemy.x() == soko.x() && enemy.y() == soko.y()) {
+    		isSokoDead = true;
+    		repaint();
+    	}
     }
     
    

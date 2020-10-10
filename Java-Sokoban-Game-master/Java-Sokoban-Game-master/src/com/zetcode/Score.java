@@ -7,59 +7,47 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class Score {
-	String path;
 	File scoreboard;
-	private ArrayList<Integer> scores;
 	
-	public int score;
-	private int temp;
-	public int total;
-	public int rank;
+	String fileName;
+	private ArrayList<Integer> scores = new ArrayList<>();
 	
-	public Score(String path){
-		this.path = path;
-		scores = new ArrayList<>();
-		score = 0;
-		scoreboard = new File(path);
-		try {//이전 점수 모두 scores(ArrayList)에 저장
-			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-			bw.write(String.valueOf(score));
-			bw.close();
-		}catch(IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public void insertScore() {//player가 새로 받은 점수를 추가하여 내림차순 정렬
-		scores.add(this.score);
-		Collections.sort(scores);
-		total = scores.size();
+	public void save(int score) {
+		scores.add(score);
+		BufferedWriter bw = null;
+		fileName = "C:\\Users\\USER\\eclipse-workspace\\scoreboard.txt";
+		scoreboard = new File(fileName);
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(path));
-			PrintWriter pw = new PrintWriter(bw);
-			for(int i=total-1;i>=0;i--) {
-				temp = scores.get(i);
-				pw.printf("%d\n", temp);
-				if(score==temp) {
-					rank = total-i;
-				}
+			bw = new BufferedWriter(new FileWriter(fileName));
+			for(int i=0;i<scores.size();i++) {
+				bw.write("Score: "+scores.get(i));
 			}
-			pw.close();
+			bw.flush();
 			bw.close();
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
+	
+//	public void reader(Graphics g) {
+//		try {
+//			FileReader fr = new FileReader();
+//			BufferedReader br = new BufferedReader(fr);
+//			temp = br.read();
+//			g.drawString(String.valueOf(temp), 640, 130);	
+//			br.close();
+//		}
+//		catch(IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	public void render(Graphics g) {
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("나눔고딕",Font.PLAIN,22));
 		g.drawString("Score: ", 500, 130);
-		g.drawString(String.valueOf(score),640,130);
 	}
 }
