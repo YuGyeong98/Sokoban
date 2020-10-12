@@ -17,18 +17,23 @@ public class Header{
 		//·¹º§
 		g.setFont(new Font("³ª´®°íµñ",Font.PLAIN,22));
 		g.setColor(Color.WHITE);
-		g.drawString("Level: ", 500, 40);
-		g.drawString(Integer.toString(level), 640, 40);		
+		g.drawString("Level: ", 900, 60);
+		g.drawString(Integer.toString(level), 1040, 60);		
 		
 		//ÀÌµ¿ È½¼ö
 		g.setFont(new Font("³ª´®°íµñ",Font.PLAIN,22));
 		g.setColor(Color.WHITE);
-		g.drawString("Steps: ", 500, 100);
-		g.drawString(Integer.toString(steps), 640, 100);
+		g.drawString("Steps: ", 900, 120);
+		g.drawString(Integer.toString(steps), 1040, 120);
 	}
 	
 	public void UpdateSteps(int i) {
 		this.steps = i;
 	}
+	
+	public void UpdateLevels(int i) {
+		this.level = i + 1;
+	}
+	
 	
 }

@@ -49,15 +49,15 @@ public class ScoreManager {
 	}
 	
 	// adds a high score the ArrayList
-	public void addScore(String name, int score) {
+	public void addScore(int score) {
 		loadScore();
-		scores.add(new HighScores(name, score));
+		scores.add(new HighScores(score));
 		updateScore();
 	}
 	
 	// used in testing without having to read from / write to  file
-	public void addScoreTesting(String name, int score) {
-		scores.add(new HighScores(name, score));
+	public void addScoreTesting(int score) {
+		scores.add(new HighScores(score));
 	}
 	
 	// reads high scores from specified file 
@@ -121,7 +121,7 @@ public class ScoreManager {
             x = max;
         }
         while (i < x) {
-            highscoreString += (i + 1) + ".\t" + scores.get(i).getName() + "\t\t" + scores.get(i).getScore() + "\n";
+            highscoreString += (i + 1) + ". " + "  " + "Á¡¼ö: " +scores.get(i).getScore() + "\n";
             i++;
         }
         return highscoreString;
