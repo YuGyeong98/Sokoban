@@ -65,11 +65,9 @@ public class Sokoban extends JFrame {// main 클래스
 	private JButton inGameStageSelectButton = new JButton(stageSelect);
 	private JButton backToMenuButton = new JButton(backToMenuBasicImage);
 
-	// private int mouseX, mouseY;
+	private int second;
 
-	public Board board = new Board();
-
-	int second;
+	Board board = new Board();
 
 	public Sokoban() {
 
@@ -86,7 +84,7 @@ public class Sokoban extends JFrame {// main 클래스
 		setLocationRelativeTo(null);// 프레임을 화면 가운데에 배치
 
 		// 종료버튼
-		quitButton.setBounds(490, 450, 250, 100);
+		quitButton.setBounds(490, 450, 250, 60);
 		quitButton.setBorderPainted(false);
 		quitButton.setContentAreaFilled(false);
 		quitButton.setFocusPainted(false);
@@ -214,8 +212,6 @@ public class Sokoban extends JFrame {// main 클래스
 				setContentPane(board);
 				board.restartLevel();
 				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
 
 				background.setVisible(false);
 				stage1Button.setVisible(false);
@@ -252,8 +248,6 @@ public class Sokoban extends JFrame {// main 클래스
 				setContentPane(board);
 				board.restartLevel();
 				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
 
 				background.setVisible(false);
 				stage1Button.setVisible(false);
@@ -290,8 +284,6 @@ public class Sokoban extends JFrame {// main 클래스
 				setContentPane(board);
 				board.restartLevel();
 				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
 
 				background.setVisible(false);
 				stage1Button.setVisible(false);
@@ -328,8 +320,6 @@ public class Sokoban extends JFrame {// main 클래스
 				setContentPane(board);
 				board.restartLevel();
 				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
 
 				background.setVisible(false);
 				stage1Button.setVisible(false);
@@ -367,8 +357,6 @@ public class Sokoban extends JFrame {// main 클래스
 
 				board.restartLevel();
 				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
 
 				background.setVisible(false);
 				stage1Button.setVisible(false);
@@ -434,10 +422,10 @@ public class Sokoban extends JFrame {// main 클래스
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				setContentPane(board);
+
 				board.restartLevel();
 				board.timer.start();
-
+				setContentPane(board);
 				board.setFocusable(true);
 				board.requestFocusInWindow();
 
@@ -637,10 +625,10 @@ public class Sokoban extends JFrame {// main 클래스
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
-			Sound sound = new Sound("src/resources/game.wav", -1);
 			Sokoban game = new Sokoban();
-			sound.play();
 			game.setVisible(true);
+			Sound sound = new Sound("src/resources/game.wav", -1);
+			sound.play();
 		});
 	}
 }

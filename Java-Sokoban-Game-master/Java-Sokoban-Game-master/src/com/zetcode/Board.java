@@ -72,66 +72,69 @@ public class Board extends JPanel{
 			//level1
             "    ######\n"
           + "    ##   #\n"
-          + "    ##   #\n"
-          + "  ####   ##\n"
-          + "  ##      #\n"
+          + "    ##$ ^#\n"
+          + "  ####  $##\n"
+          + "  ##! $ $ #\n"
           + "#### # ## #   ######\n"
-          + "##   # ## #####    #\n"
-          + "##           ^@$  .#\n"
-          + "###### ### # ##    #\n"
-          + "    ##     #########\n"
+          + "##  ^# ## #####  ..#\n"
+          + "## $  $          ..#\n"
+          + "###### ### #@##  ..#\n"
+          + "    ## ^   #########\n"
           + "    ########\n",
           
-	        //level2
-	   		" #####   #####\n"
-	   	  + "#    #####   #\n"
-	      + "# $.$  @   $. #\n"
-	   	  + "# . .#####    #\n"
-	   	  + "# $.$      $. #\n"
-	   	  + "#    #####    #\n"
-	   	  + " #####   #####\n",
-	   		
-	   		//level3
-	   		"       #####\n"
-	   	  + "    ####   #\n"
-	   	  + "#####^  $  #\n"
-	   	  + "#     # ^ ####\n"
-	   	  + "#     $....  #\n"
-	   	  + "#######$#$## #\n"
-	   	  + "      #  @   #\n"
-	   	  + "      ########\n",
+			//level2
+            "        ########\n"
+          + "        #     @#\n"
+          + "        # $#  ##\n"
+          + "        #     #\n"
+          + "        ##  $ #\n"
+          + "#########   #^###\n"
+          + "#.     ##   $   #\n"
+          + "##.             #\n"
+          + "#.     ##########\n"
+          + "########\n",
+          
+	        //level3
+	   		"      ####\n"
+	   	  + "####### @#\n"
+	      + "#        #\n"
+	   	  + "#   $##  #\n"
+	   	  + "## # ..# #\n"
+	   	  + " # $ ..^ #\n"
+	   	  + " # #   # ##\n"
+	   	  + " #   # #$ #\n"
+	   	  + " #   $   ^#\n"
+	   	  + " #  #######\n"
+	   	  + " ####",
 	   		
 	   		//level4
-	   		"##########\n"
-	   	  + "#  #  #  #\n"
-	   	  + "#.......@#\n"
-	   	  + "# $##.#$ #\n"
-	   	  + "#  $     #\n"
-	   	  + "#  ##$#$##\n"
-	   	  + "# ^#  #  #\n"
-	   	  + "# $$  $ ^#\n"
-	   	  + "#  #  #  #\n"
-	   	  + "#  #  #  #\n"
-	   	  + "#! #  #  #\n"
-	   	  + "##########\n",
-	   		
-	   		//level5
-	   		"  #####\n"
-	   	  + "###   ###\n"
-	   	  + "#   $  ^#\n"
-	   	  + "# $$$$$ #\n"
-	   	  + "#   $   #\n"
-	   	  + "### $# ##     #######\n"
-	   	  + "  #  # #      #. . ^#\n"
-	   	  + "  # $# #      #. . ^#\n"
-	   	  + "  #  # #      #. . ^#\n"
-	   	  + "  #$## ########. . ^#\n"
-	   	  + "  # #          . . ^#\n"
-	   	  + "  # #    ######.##@##\n"
-	   	  + "  # #### #    #.    #\n"
-	   	  + "  # $ $  #    #######\n"
-	   	  + "  #!    ##\n"
-	   	  + "  #######\n" 
+	   		"  #################\n"
+	   	  + "  #     # ^      .#\n"
+	   	  + "  # ############ $#\n"
+	   	  + "  # #      #      #\n"
+	   	  + "  # # ###  #  #####\n"
+	   	  + "  #^# #^   #     ^#\n"
+	   	  + "  # # # #######  ##\n"
+	   	  + "  # # #    ###   ##\n"
+	   	  + "### # # ##     ####\n"
+	   	  + "#!@   # ## ########\n"
+	   	  + "#######  ^#########\n"
+	   	  + "###################\n",
+
+	   	    //level5
+	   	    "        #######    \n"
+	   	  + "    #####  #  #### \n"
+	   	  + "    #   #        # \n"
+	   	  + " #### #   ## ##  # \n"
+	   	  + "##      # #  ## ###\n"
+	   	  + "#  ### $#   $   $ #\n"
+	   	  + "#.      # ##  #   #\n"
+	   	  + "#.  #    @ # ### ##\n"
+	   	  + "#.  #  ###        #\n"
+	   	  + "######## ##   #   #\n"
+	   	  + "          #########\n",
+	   	  
+
 	};
 
     
@@ -793,7 +796,7 @@ public class Board extends JPanel{
         		}
         	}
         	 	
-        	if(enemy.y() < soko.y()) {
+        	if(enemy.y() < soko.y() || enemy.y() == soko.y()) {
         		if(canEnemyMove(enemy.x(), enemy.y()+spd)) {
         			enemy.move(0, spd);
             		move = true;
@@ -826,7 +829,7 @@ public class Board extends JPanel{
     	    				enemy.move(0, spd);
     	    				System.out.println("find down(right)");
     	    				state = smart;
-
+        					break;
     	    			}
     	    		}
     	    		else {
@@ -834,6 +837,7 @@ public class Board extends JPanel{
     	    				enemy.move(0, -spd);
     	    				System.out.println("find up(right)");
     	    				state = smart;
+        					break;
     	    			}
     	    		}
     	    		
@@ -841,6 +845,7 @@ public class Board extends JPanel{
     	    			enemy.move(spd, 0);
     					System.out.println("find right(right)");
     					state = smart;
+    					break;
     	    		}
     	          }
     	    	
@@ -850,6 +855,7 @@ public class Board extends JPanel{
     	    				enemy.move(0, spd);
     	    				System.out.println("find down(left)");
     	    				state = smart;
+        					break;
     	    			}
     	    		}
     	    		else {
@@ -857,6 +863,7 @@ public class Board extends JPanel{
     	    				enemy.move(0, -spd);
     	    				System.out.println("find up(left)");
     	    				state = smart;
+        					break;
     	    			}
     	    		}
     	    		
@@ -864,6 +871,7 @@ public class Board extends JPanel{
     	    			enemy.move(-spd, 0);
     					System.out.println("find left(left)");
     					state = smart;
+    					break;
     	    		}
     	          }
     	    	
@@ -873,6 +881,7 @@ public class Board extends JPanel{
     	      				enemy.move(spd, 0);
     	    				System.out.println("find right(up)");
     	    				state = smart;
+        					break;
     	      			}
     	      		}
     	      		else {
@@ -880,6 +889,7 @@ public class Board extends JPanel{
     	      				enemy.move(-spd, 0);
     	    				System.out.println("find left(up)");
     	    				state = smart;
+        					break;
     	      			}
     	      		}
     	      		
@@ -887,6 +897,7 @@ public class Board extends JPanel{
     	      			enemy.move(0, -spd);
     					System.out.println("find up(up)");
     					state = smart;
+    					break;
     	      		}
     	          }
     	    	
@@ -896,6 +907,7 @@ public class Board extends JPanel{
     	      				enemy.move(spd, 0);
     	    				System.out.println("find right(down)");
     	    				state = smart;
+    	    				break;
     	      			}
     	      		}
     	      		else {
@@ -903,6 +915,7 @@ public class Board extends JPanel{
     	      				enemy.move(-spd, 0);
     	    				System.out.println("find left(down)");
     	    				state = smart;
+    	    				break;
     	      			}
     	      		}
     	      		
@@ -910,6 +923,7 @@ public class Board extends JPanel{
     	      			enemy.move(0, spd);
     					System.out.println("find down(down)");
     					state = smart;
+    					break;
     	      		}          
     	          }
     	    	}
