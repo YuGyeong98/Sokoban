@@ -60,13 +60,13 @@ public class Board extends JPanel{
     private Enemy enemy;
     private boolean isSokoDead = false;
     
-	JLabel counterLabel;
+	private JLabel counterLabel;
 	
-	Timer timer;
-	int second;
-	int minute;
-	String ddSecond, ddMinute;
-	DecimalFormat dFormat = new DecimalFormat("00");
+	public Timer timer;
+	public int second;
+	public int minute;
+	public String ddSecond, ddMinute;
+	private DecimalFormat dFormat = new DecimalFormat("00");
 
 	private String level[] = {
 			//level1

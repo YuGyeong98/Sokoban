@@ -67,8 +67,8 @@ public class Sokoban extends JFrame {// main Å¬·¡½º
 
 	private int second;
 
-	Board board = new Board();
-
+	private Board board = new Board();
+	
 	public Sokoban() {
 
 		initUI();
