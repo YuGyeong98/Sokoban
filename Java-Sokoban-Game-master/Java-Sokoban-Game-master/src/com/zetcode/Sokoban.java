@@ -8,6 +8,21 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -28,7 +43,10 @@ public class Sokoban extends JFrame {// main 클래스
 	private ImageIcon startButtonEnteredImage = new ImageIcon("src/resources/start2.png");
 	private ImageIcon quitButtonBasicImage = new ImageIcon("src/resources/quit1.png");
 	private ImageIcon quitButtonEnteredImage = new ImageIcon("src/resources/quit2.png");
-
+	
+	private ImageIcon continueButtonBasicImage = new ImageIcon("src/resoures/quit1.png");//사진변경
+	private ImageIcon continueButtonEnteredImage = new ImageIcon("src/resoures/quit2.png");//사진변경
+	
 	private ImageIcon backToMenuBasicImage = new ImageIcon("src/resources/backtomenu1.png");
 	private ImageIcon backToMenuEnteredImage = new ImageIcon("src/resources/backtomenu2.png");
 
@@ -47,10 +65,14 @@ public class Sokoban extends JFrame {// main 클래스
 	private ImageIcon restart = new ImageIcon("src/resources/restart.png");
 	private ImageIcon stageSelectEntered = new ImageIcon("src/resources/stageselect2.png");
 	private ImageIcon restartEntered = new ImageIcon("src/resources/restart2.png");
-
+	
+	private ImageIcon saveGame = new ImageIcon("src/resources/restart.png");//사진변경
+	private ImageIcon saveGameEntered = new ImageIcon("src/resources/restart.png");//사진변경
+			
 	private JButton quitButton = new JButton(quitButtonBasicImage);
 	private JButton startButton = new JButton(startButtonBasicImage);
-
+	private JButton continueButton = new JButton(continueButtonBasicImage);
+	
 	private JButton stage1Button = new JButton(stage1Basic);
 	private JButton stage2Button = new JButton(stage2Basic);
 	private JButton stage3Button = new JButton(stage3Basic);
@@ -64,16 +86,51 @@ public class Sokoban extends JFrame {// main 클래스
 
 	private JButton inGameStageSelectButton = new JButton(stageSelect);
 	private JButton backToMenuButton = new JButton(backToMenuBasicImage);
+	private JButton saveGameButton = new JButton(saveGame);
 
 	private int second;
 
 	private Board board = new Board();
 	
 	public Sokoban() {
-
+		
 		initUI();
 	}
-
+	
+	public void saveGame() {
+		try {
+			SavedState state = new SavedState(board);
+			FileOutputStream fos = new FileOutputStream("gamefile.sav");
+			BufferedOutputStream buffer = new BufferedOutputStream(fos);
+			ObjectOutputStream oos = new ObjectOutputStream(buffer);
+			oos.writeObject(state);
+			oos.flush();
+			oos.close();
+		}
+		catch(IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadGame() {
+		SavedState state;
+		try {
+			FileInputStream fis = new FileInputStream("gamefile.sav");
+			BufferedInputStream buffer = new BufferedInputStream(fis);
+			ObjectInputStream ois = new ObjectInputStream(buffer);
+			state = (SavedState) ois.readObject();
+			this.board = state.board;
+			ois.close();
+		}
+		catch(FileNotFoundException e) {
+			e.printStackTrace();
+		}catch(IOException e) {
+			e.printStackTrace();
+		}catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void initUI() {
 
 		setTitle("Sokoban");
@@ -151,9 +208,41 @@ public class Sokoban extends JFrame {// main 클래스
 				backToMenuButton.setVisible(true);
 			}
 		});
-
 		background.add(startButton);
 
+		//계속하기 버튼
+		continueButton.setBounds(430, 500, 380, 100);
+		continueButton.setBorderPainted(false);
+		continueButton.setContentAreaFilled(false);
+		continueButton.setFocusPainted(false);
+		continueButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				continueButton.setIcon(continueButtonEnteredImage);
+				continueButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				continueButton.setIcon(continueButtonBasicImage);
+				continueButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				startButton.setVisible(false);
+				quitButton.setVisible(false);
+				introBackground = new ImageIcon("src/resources/nightcity.jpg");
+				background.add(backToMenuButton);
+				backToMenuButton.setVisible(true);
+				
+				setContentPane(board);
+				loadGame();
+				board.requestFocusInWindow();
+			}
+		});
+		background.add(continueButton);
+		
 		// backToMenu 버튼
 		backToMenuButton.setBounds(30, 20, 310, 100);
 		backToMenuButton.setBorderPainted(false);
@@ -219,6 +308,7 @@ public class Sokoban extends JFrame {// main 클래스
 				stage3Button.setVisible(false);
 				stage4Button.setVisible(false);
 				stage5Button.setVisible(false);
+				
 			}
 		});
 
@@ -255,6 +345,8 @@ public class Sokoban extends JFrame {// main 클래스
 				stage3Button.setVisible(false);
 				stage4Button.setVisible(false);
 				stage5Button.setVisible(false);
+				
+				
 			}
 		});
 
@@ -291,6 +383,7 @@ public class Sokoban extends JFrame {// main 클래스
 				stage3Button.setVisible(false);
 				stage4Button.setVisible(false);
 				stage5Button.setVisible(false);
+				
 			}
 		});
 
@@ -327,6 +420,7 @@ public class Sokoban extends JFrame {// main 클래스
 				stage3Button.setVisible(false);
 				stage4Button.setVisible(false);
 				stage5Button.setVisible(false);
+				
 			}
 		});
 
@@ -364,6 +458,7 @@ public class Sokoban extends JFrame {// main 클래스
 				stage3Button.setVisible(false);
 				stage4Button.setVisible(false);
 				stage5Button.setVisible(false);
+				
 			}
 		});
 
@@ -533,9 +628,35 @@ public class Sokoban extends JFrame {// main 클래스
 				stage5Button.setVisible(true);
 			}
 		});
-
+		
 		board.add(inGameStageSelectButton);
+		
+		//게임 저장 버튼(게임중)
+		saveGameButton.setBounds(30, 100, 350, 50);
+		saveGameButton.setBorderPainted(false);
+		saveGameButton.setContentAreaFilled(false);
+		saveGameButton.setFocusPainted(false);
+		saveGameButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				saveGameButton.setIcon(saveGameEntered);
+				saveGameButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			}
 
+			@Override
+			public void mouseExited(MouseEvent e) {
+				saveGameButton.setIcon(saveGame);
+				saveGameButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				saveGame();
+				JOptionPane.showMessageDialog(board, "Save Game");
+			}
+		});
+		board.add(saveGameButton);
+		
 		setContentPane(background);
 
 		background.setLayout(null);
@@ -623,11 +744,11 @@ public class Sokoban extends JFrame {// main 클래스
 		this.repaint();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args){
 		EventQueue.invokeLater(() -> {
+			Sound sound = new Sound("src/resources/game.wav", -1);
 			Sokoban game = new Sokoban();
 			game.setVisible(true);
-			Sound sound = new Sound("src/resources/game.wav", -1);
 			sound.play();
 		});
 	}

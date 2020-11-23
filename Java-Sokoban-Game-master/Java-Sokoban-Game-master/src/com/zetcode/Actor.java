@@ -2,8 +2,11 @@ package com.zetcode;
 
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.io.Serializable;
 
-public class Actor{
+public class Actor implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 
 	private final int SPACE = 32;
 

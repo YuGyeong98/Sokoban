@@ -13,7 +13,7 @@ import java.util.Collections;
  * This class contains methods that manage everything related to highscores. 
  */
 public class ScoreManager {
-	
+
 	// private fields
 	private ArrayList<HighScores> scores;
 	private static final String HIGHSCORE_FILE1 = "highscores/highscores1.txt";
@@ -21,46 +21,46 @@ public class ScoreManager {
 	private static final String HIGHSCORE_FILE3 = "highscores/highscores3.txt";
 	private static final String HIGHSCORE_FILE4 = "highscores/highscores4.txt";
 	private static final String HIGHSCORE_FILE5 = "highscores/highscores5.txt";
-	
+
 	ObjectOutputStream os = null;
 	ObjectInputStream is = null;
-	
+
 	// contains the ArrayList of high scores
 	public ScoreManager() {
 		scores = new ArrayList<HighScores>();
 	}
-	
+
 	// gets, sorts, and returns high scores for a specified level
 	public ArrayList<HighScores> getScores() {
 		loadScore();
 		sort();
 		return scores;
 	}
-	
+
 	// used in testing without having to loadScoreFile()
 	public ArrayList<HighScores> getScoresTesting() {
 		return scores;
 	}
-	
+
 	// sort high scores using the comparator
 	public void sort() {
 		ScoreComparator comparator = new ScoreComparator();
 		Collections.sort(scores, comparator);
 	}
-	
+
 	// adds a high score the ArrayList
 	public void addScore(int score) {
 		loadScore();
 		scores.add(new HighScores(score));
 		updateScore();
 	}
-	
-	// used in testing without having to read from / write to  file
+
+	// used in testing without having to read from / write to file
 	public void addScoreTesting(int score) {
 		scores.add(new HighScores(score));
 	}
-	
-	// reads high scores from specified file 
+
+	// reads high scores from specified file
 	@SuppressWarnings("unchecked")
 	public void loadScore() {
 		try {
@@ -84,7 +84,7 @@ public class ScoreManager {
 			}
 		}
 	}
-	
+
 	// updates specified file with a new high score
 	public void updateScore() {
 		try {
@@ -93,7 +93,7 @@ public class ScoreManager {
 			os.writeObject(scores);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}  catch (IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			try {
@@ -101,52 +101,48 @@ public class ScoreManager {
 					os.flush();
 					os.close();
 				}
-			}  catch (IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	// returns list of high scores (5 max) for a specified level
 	public String getHighscoreString() {
-        String highscoreString = "";
-        int max = 5;
+		String highscoreString = "";
+		int max = 5;
 
-        ArrayList<HighScores> scores;
-        scores = getScores();
+		ArrayList<HighScores> scores;
+		scores = getScores();
 
-        int i = 0;
-        int x = scores.size();
-        if (x > max) {
-            x = max;
-        }
-        while (i < x) {
-            highscoreString += (i + 1) + ". " + "  " + "점수: " +scores.get(i).getScore() + "\n";
-            i++;
-        }
-        return highscoreString;
+		int i = 0;
+		int x = scores.size();
+		if (x > max) {
+			x = max;
+		}
+		while (i < x) {
+			highscoreString += (i + 1) + ". " + "  " + "점수: " + scores.get(i).getScore() + "\n";
+			i++;
+		}
+		return highscoreString;
 	}
-	
+
 	// specifies which file to read from and write to
 	public String getHighscoreFile() {
 		String fileToReturn = "";
 		if (Board.getCurrentLevel() == 0) {
 			fileToReturn = HIGHSCORE_FILE1;
-		}
-		else if (Board.getCurrentLevel() == 1) {
+		} else if (Board.getCurrentLevel() == 1) {
 			fileToReturn = HIGHSCORE_FILE2;
-		}
-		else if (Board.getCurrentLevel() == 2) {
+		} else if (Board.getCurrentLevel() == 2) {
 			fileToReturn = HIGHSCORE_FILE3;
-		}
-		else if (Board.getCurrentLevel() == 3) {
+		} else if (Board.getCurrentLevel() == 3) {
 			fileToReturn = HIGHSCORE_FILE4;
-		}
-		else if (Board.getCurrentLevel() == 4) {
+		} else if (Board.getCurrentLevel() == 4) {
 			fileToReturn = HIGHSCORE_FILE5;
 		}
-		
+
 		return fileToReturn;
 	}
-		
+
 }
