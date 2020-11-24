@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -91,38 +92,39 @@ public class Sokoban extends JFrame implements Serializable {// main 클래스
 	private boolean wasStarted = false;
 
 	private Board board = new Board();
-
+//	private SavedState state;
+	
 	public Sokoban() {
 
 		initUI();
 	}
 
-	public void saveGame() {
+	public void saveGame(int level) {
 		try {
-//			SavedState state = new SavedState(board);
-			FileOutputStream fos = new FileOutputStream("gamefile.sav");
+//			state = new SavedState(board);
+			FileOutputStream fos = new FileOutputStream("gamefile" + level + ".sav");
 			BufferedOutputStream buffer = new BufferedOutputStream(fos);
 			ObjectOutputStream oos = new ObjectOutputStream(buffer);
 //			oos.writeObject(state);
 			oos.writeObject(board);
 			oos.flush();
 			oos.close();
-			fos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void loadGame() {
-//		SavedState state;
+	public void loadGame(int level) {
 		try {
-			FileInputStream fis = new FileInputStream("gamefile.sav");
-			BufferedInputStream buffer = new BufferedInputStream(fis);
-			ObjectInputStream ois = new ObjectInputStream(buffer);
-//			state = (SavedState) ois.readObject();
-//			this.board = state.board;
-			board = (Board) ois.readObject();
-			ois.close();
+			if(saveFileExists(level)) {
+				FileInputStream fis = new FileInputStream("gamefile" + level + ".sav");
+				BufferedInputStream buffer = new BufferedInputStream(fis);
+				ObjectInputStream ois = new ObjectInputStream(buffer);
+//				state = (SavedState) ois.readObject();
+//				this.board = state.board;
+				board = (Board) ois.readObject();
+				ois.close();
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -130,6 +132,11 @@ public class Sokoban extends JFrame implements Serializable {// main 클래스
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean saveFileExists(int level) {
+		File f = new File("gamefile" + level + ".sav");
+		return f.exists();
 	}
 
 	private void basicButtonMethod(JButton name, int x, int y, int width, int height) {
@@ -325,7 +332,7 @@ public class Sokoban extends JFrame implements Serializable {// main 클래스
 				backToMenuButton.setVisible(true);
 
 				setContentPane(board);
-				loadGame();
+				loadGame(Board.getCurrentLevel());
 				board.requestFocusInWindow();
 			}
 		});
@@ -471,7 +478,7 @@ public class Sokoban extends JFrame implements Serializable {// main 클래스
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				saveGame();
+				saveGame(Board.getCurrentLevel());
 				JOptionPane.showMessageDialog(board, "Game Saved");
 			}
 		});
