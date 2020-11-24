@@ -5,7 +5,9 @@ import javax.swing.ImageIcon;
 
 public class Wall extends Actor {//Actor클래스를 상속받는다.
 
-    private Image image;
+	private static final long serialVersionUID = 1L;
+	
+	private Image image;
 
     public Wall(int x, int y) {
         super(x, y);

@@ -3,6 +3,7 @@ package com.zetcode;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -10,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -30,6 +32,8 @@ public class Board extends JPanel {
 	private ArrayList<Baggage> baggs;
 	private ArrayList<Area> areas;
 	private ArrayList<Coin> coins;
+	private ArrayList<KeyYellow> keys;
+	private ArrayList<KeyWall> keywalls;
 
 	public static int currentLevel;
 	public int coinScore = 0;
@@ -44,6 +48,10 @@ public class Board extends JPanel {
 	private int h = 0;
 
 	private boolean isCompleted = false;
+	
+	private boolean isGetKey = false;
+	
+	private boolean keyWallwithKey = false;
 
 	private final int RIGHT = 0;
 	private final int LEFT = 1;
@@ -76,7 +84,7 @@ public class Board extends JPanel {
 		  + "  ##! $ $ #\n"
 		  + "#### # ## #   ######\n" 
 		  + "##  ^# ## #####  ..#\n" 
-		  + "## $  $          ..#\n"
+		  + "## $  $   & ~    ..#\n"
 		  + "###### ### #@##  ..#\n" 
 		  + "    ## ^   #########\n" 
 		  + "    ########\n",
@@ -131,7 +139,7 @@ public class Board extends JPanel {
 		  + "#.  #    @ # ### ##\n" 
 		  + "#.  #  ###        #\n" 
 		  + "######## ##   #   #\n"
-		  + "          #########\n"
+		  + "          #########\n",
 
 	};
 
@@ -155,7 +163,7 @@ public class Board extends JPanel {
 		setFocusable(true);
 		initWorld();
 	}
-	
+
 	public static int getCurrentLevel() {
 		return currentLevel;
 	}
@@ -225,6 +233,8 @@ public class Board extends JPanel {
 		baggs = new ArrayList<>();
 		areas = new ArrayList<>();
 		coins = new ArrayList<>();
+		keys = new ArrayList<>();
+		keywalls = new ArrayList<>();
 
 		int x = OFFSET;
 		int y = OFFSET;
@@ -233,6 +243,8 @@ public class Board extends JPanel {
 		Baggage b;
 		Area a;
 		Coin c;
+		KeyYellow k;
+		KeyWall kw;
 
 		for (int i = 0; i < level[currentLevel].length(); i++) {
 
@@ -272,6 +284,18 @@ public class Board extends JPanel {
 				coins.add(c);
 				x += SPACE;
 				break;
+				
+			case '~':
+				k = new KeyYellow(x, y);
+				keys.add(k);
+				x += SPACE;
+				break;
+				
+			case '&':
+				kw = new KeyWall(x, y);
+				keywalls.add(kw);
+				x += SPACE;
+				break;
 
 			case '@':
 				soko = new Player(x, y);
@@ -296,6 +320,7 @@ public class Board extends JPanel {
 	}
 
 	private void buildWorld(Graphics g) {
+		// 게임을 윈도우에 그린다.
 
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, 1280, 720);
@@ -307,6 +332,8 @@ public class Board extends JPanel {
 
 		leftbaggs(g);
 		coinCheck();
+		keyCheck();
+		keyWallCheck();
 
 		ArrayList<Actor> world = new ArrayList<>();
 
@@ -314,8 +341,10 @@ public class Board extends JPanel {
 		world.addAll(areas);
 		world.addAll(baggs);
 		world.addAll(coins);
+		world.addAll(keys);
+		world.addAll(keywalls);
 		world.add(soko);
-		
+
 		if (enemy != null) {
 			world.add(enemy);
 		}
@@ -340,6 +369,18 @@ public class Board extends JPanel {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		buildWorld(g);
+		
+        if(keys.size() > 0) {
+        	ImageIcon icon = new ImageIcon("src/resources/hudKey_yellow_empty.png");
+            Image img = icon.getImage();
+    		g.drawImage(img, 800, 50, this);
+        }
+        
+        if(isGetKey == true) {
+        	ImageIcon icon = new ImageIcon("src/resources/keyfulled.png");
+            Image img = icon.getImage();
+    		g.drawImage(img, 800, 50, this);
+        }
 	}
 
 	private class TAdapter extends KeyAdapter {// 키 입력받기
@@ -368,7 +409,15 @@ public class Board extends JPanel {
 				if (checkBagCollision(LEFT_COLLISION)) {
 					return;
 				}
-
+				
+				if(checkKeyWallCollision(soko, LEFT_COLLISION)) {
+					if(!isGetKey) {
+						return;
+					}
+					else
+						keyWallwithKey = true;
+				}
+				
 				soko.move(-SPACE, 0);
 				addStep();
 				if (enemy != null) {
@@ -386,6 +435,14 @@ public class Board extends JPanel {
 
 				if (checkBagCollision(RIGHT_COLLISION)) {
 					return;
+				}
+				
+				if(checkKeyWallCollision(soko, RIGHT_COLLISION)) {
+					if(!isGetKey) {
+						return;
+					}
+					else
+						keyWallwithKey = true;
 				}
 
 				soko.move(SPACE, 0);
@@ -407,6 +464,14 @@ public class Board extends JPanel {
 					return;
 				}
 
+				if(checkKeyWallCollision(soko, TOP_COLLISION)) {
+					if(!isGetKey) {
+						return;
+					}
+					else
+						keyWallwithKey = true;
+				}
+				
 				soko.move(0, -SPACE);
 				addStep();
 				if (enemy != null) {
@@ -424,6 +489,14 @@ public class Board extends JPanel {
 
 				if (checkBagCollision(BOTTOM_COLLISION)) {
 					return;
+				}
+				
+				if(checkKeyWallCollision(soko, BOTTOM_COLLISION)) {
+					if(!isGetKey) {
+						return;
+					}
+					else
+						keyWallwithKey = true;
 				}
 
 				soko.move(0, SPACE);
@@ -450,6 +523,71 @@ public class Board extends JPanel {
 
 	}
 
+	private boolean checkKeyWallCollision(Actor actor, int type) {
+
+		switch (type) {
+
+		case LEFT_COLLISION:
+
+			for (int i = 0; i < keywalls.size(); i++) {
+
+				KeyWall keywall = keywalls.get(i);
+
+				if (actor.isLeftCollision(keywall)) {
+
+					return true;
+				}
+			}
+
+			return false;
+
+		case RIGHT_COLLISION:
+
+			for (int i = 0; i < keywalls.size(); i++) {
+
+				KeyWall keywall = keywalls.get(i);
+
+				if (actor.isRightCollision(keywall)) {
+					return true;
+				}
+			}
+
+			return false;
+
+		case TOP_COLLISION:
+
+			for (int i = 0; i < keywalls.size(); i++) {
+
+				KeyWall keywall = keywalls.get(i);
+
+				if (actor.isTopCollision(keywall)) {
+
+					return true;
+				}
+			}
+
+			return false;
+
+		case BOTTOM_COLLISION:
+
+			for (int i = 0; i < keywalls.size(); i++) {
+
+				KeyWall keywall = keywalls.get(i);
+
+				if (actor.isBottomCollision(keywall)) {
+
+					return true;
+				}
+			}
+
+			return false;
+
+		default:
+			break;
+		}
+		return false;
+	}
+	
 	private boolean checkWallCollision(Actor actor, int type) {
 
 		switch (type) {
@@ -651,7 +789,8 @@ public class Board extends JPanel {
 	}
 
 	public void isCompleted() {
-		
+		// 레벨이 끝났는지 확인한다.
+		// baggage의 수를 얻을 수 있다. 모든 baggage의 (x,y)좌표와 목적지를 비교한다.
 		int nOfBags = baggs.size();
 
 		int finishedBags = 0;
@@ -671,7 +810,7 @@ public class Board extends JPanel {
 			}
 		}
 
-		if (finishedBags == nOfBags) {
+		if (finishedBags == nOfBags) {// finishedBags와 nOfBags(게임 내 baggage수)와 같을 때 게임 클리어
 			if (finalScore < 0) {
 				finalScore = 0;
 			}
@@ -692,6 +831,8 @@ public class Board extends JPanel {
 		areas.clear();
 		baggs.clear();
 		walls.clear();
+		keys.clear();
+		keywalls.clear();
 		enemy = null;
 		coinScore = 0;
 
@@ -704,6 +845,8 @@ public class Board extends JPanel {
 		if (isSokoDead) {
 			isSokoDead = false;
 		}
+		
+		isGetKey = false;
 	}
 
 	public int getCurrentSteps() {
@@ -731,6 +874,30 @@ public class Board extends JPanel {
 		}
 	}
 
+	public void keyCheck() {
+		for (int i = 0; i < keys.size(); i++) {
+			KeyYellow key = keys.get(i);
+			if (soko.getRect().intersects(key.getRect())) {
+				keys.remove(i);
+				isGetKey = true;
+				break;
+			}
+		}
+	}
+	
+	public void keyWallCheck() {
+			if(isGetKey) {
+				for (int i = 0; i < keywalls.size(); i++) {
+					KeyWall keywall = keywalls.get(i);
+					if (soko.getRect().intersects(keywall.getRect())) {
+						keywalls.remove(i);
+						break;
+					}
+				}
+			}
+	}
+	
+	
 	public void leftbaggs(Graphics g) {
 		int nOfBags = baggs.size();
 		int leftover = baggs.size();
@@ -929,5 +1096,4 @@ public class Board extends JPanel {
 			repaint();
 		}
 	}
-
 }

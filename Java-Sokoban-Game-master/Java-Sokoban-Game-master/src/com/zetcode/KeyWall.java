@@ -1,24 +1,24 @@
 package com.zetcode;
 
 import java.awt.Image;
+
 import javax.swing.ImageIcon;
 
-public class Coin extends Actor{
+public class KeyWall extends Actor {
 	
 	private static final long serialVersionUID = 1L;
 	
 	private Image image;
-	int x,y;
-	public Coin(int x, int y) {
+	
+	public KeyWall(int x, int y) {
 		super(x, y);
-		initCoin();
+		initKeyWall();
 	}
 
-	public void initCoin() {
-		ImageIcon iicon = new ImageIcon("src/resources/coin.png");
+	private void initKeyWall() {
+		ImageIcon iicon = new ImageIcon("src/resources/keywall.png");
 		image = iicon.getImage();
 		setImage(image);
 	}
 	
-
 }

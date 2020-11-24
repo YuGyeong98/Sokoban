@@ -3,13 +3,16 @@ package com.zetcode;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
-public class Sound {
+public class Sound implements Serializable{
 
+	private static final long serialVersionUID = 1L;
+	
 	private InputStream in;
 	private Clip clip;
 	private int counter;

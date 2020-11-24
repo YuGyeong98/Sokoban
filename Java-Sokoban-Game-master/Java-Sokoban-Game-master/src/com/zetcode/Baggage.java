@@ -5,7 +5,9 @@ import javax.swing.ImageIcon;
 
 public class Baggage extends Actor {
 
-    public Baggage(int x, int y) {
+	private static final long serialVersionUID = 1L;
+
+	public Baggage(int x, int y) {
         super(x, y);
         
         initBaggage();

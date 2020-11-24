@@ -6,14 +6,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
 /*
  * This class contains methods that manage everything related to highscores. 
  */
-public class ScoreManager {
+public class ScoreManager implements Serializable{
 
+	private static final long serialVersionUID = 1L;
 	// private fields
 	private ArrayList<HighScores> scores;
 	private static final String HIGHSCORE_FILE1 = "highscores/highscores1.txt";

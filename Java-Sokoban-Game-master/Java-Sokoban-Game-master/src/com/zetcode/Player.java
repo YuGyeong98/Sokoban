@@ -6,7 +6,9 @@ import javax.swing.ImageIcon;
 
 public class Player extends Actor{
 	
-    public Player(int x, int y) {
+	private static final long serialVersionUID = 1L;
+
+	public Player(int x, int y) {
         super(x, y);
         initPlayer(); 
     }

@@ -3,8 +3,12 @@ package com.zetcode;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.io.Serializable;
 
-public class Header{
+public class Header implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
 	private int steps;
 	private int level;
 	
@@ -27,12 +31,12 @@ public class Header{
 		g.drawString(Integer.toString(steps), 1040, 120);
 	}
 	
-	public void UpdateSteps(int i) {
-		this.steps = i;
+	public void UpdateSteps(int steps) {
+		this.steps = steps;
 	}
 	
-	public void UpdateLevels(int i) {
-		this.level = i + 1;
+	public void UpdateLevels(int level) {
+		this.level = level + 1;
 	}
 	
 	

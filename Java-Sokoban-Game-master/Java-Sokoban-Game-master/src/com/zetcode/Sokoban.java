@@ -10,19 +10,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.Serializable;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -30,7 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-public class Sokoban extends JFrame {// main 클래스
+public class Sokoban extends JFrame implements Serializable {// main 클래스
 
 	private static final long serialVersionUID = 1L;
 
@@ -43,10 +37,13 @@ public class Sokoban extends JFrame {// main 클래스
 	private ImageIcon startButtonEnteredImage = new ImageIcon("src/resources/start2.png");
 	private ImageIcon quitButtonBasicImage = new ImageIcon("src/resources/quit1.png");
 	private ImageIcon quitButtonEnteredImage = new ImageIcon("src/resources/quit2.png");
-	
-	private ImageIcon continueButtonBasicImage = new ImageIcon("src/resoures/quit1.png");//사진변경
-	private ImageIcon continueButtonEnteredImage = new ImageIcon("src/resoures/quit2.png");//사진변경
-	
+
+	private ImageIcon continueButtonBasicImage = new ImageIcon("src/resoures/continue1.png");
+	private ImageIcon continueButtonEnteredImage = new ImageIcon("src/resoures/continue2.png");
+
+	private ImageIcon loadButtonBasicImage = new ImageIcon("src/resources/load1.png");
+	private ImageIcon loadButtonEnteredImage = new ImageIcon("src/resources/load2.png");
+
 	private ImageIcon backToMenuBasicImage = new ImageIcon("src/resources/backtomenu1.png");
 	private ImageIcon backToMenuEnteredImage = new ImageIcon("src/resources/backtomenu2.png");
 
@@ -65,14 +62,15 @@ public class Sokoban extends JFrame {// main 클래스
 	private ImageIcon restart = new ImageIcon("src/resources/restart.png");
 	private ImageIcon stageSelectEntered = new ImageIcon("src/resources/stageselect2.png");
 	private ImageIcon restartEntered = new ImageIcon("src/resources/restart2.png");
-	
-	private ImageIcon saveGame = new ImageIcon("src/resources/restart.png");//사진변경
-	private ImageIcon saveGameEntered = new ImageIcon("src/resources/restart.png");//사진변경
-			
+
+	private ImageIcon saveGame = new ImageIcon("src/resources/save1.png");
+	private ImageIcon saveGameEntered = new ImageIcon("src/resources/save2.png");
+
 	private JButton quitButton = new JButton(quitButtonBasicImage);
 	private JButton startButton = new JButton(startButtonBasicImage);
 	private JButton continueButton = new JButton(continueButtonBasicImage);
-	
+	private JButton loadButton = new JButton(loadButtonBasicImage);
+
 	private JButton stage1Button = new JButton(stage1Basic);
 	private JButton stage2Button = new JButton(stage2Basic);
 	private JButton stage3Button = new JButton(stage3Basic);
@@ -90,47 +88,133 @@ public class Sokoban extends JFrame {// main 클래스
 
 	private int second;
 
+	private boolean wasStarted = false;
+
 	private Board board = new Board();
-	
+
 	public Sokoban() {
-		
+
 		initUI();
 	}
-	
+
 	public void saveGame() {
 		try {
-			SavedState state = new SavedState(board);
+//			SavedState state = new SavedState(board);
 			FileOutputStream fos = new FileOutputStream("gamefile.sav");
 			BufferedOutputStream buffer = new BufferedOutputStream(fos);
 			ObjectOutputStream oos = new ObjectOutputStream(buffer);
-			oos.writeObject(state);
+//			oos.writeObject(state);
+			oos.writeObject(board);
 			oos.flush();
 			oos.close();
-		}
-		catch(IOException e) {
+			fos.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void loadGame() {
-		SavedState state;
+//		SavedState state;
 		try {
 			FileInputStream fis = new FileInputStream("gamefile.sav");
 			BufferedInputStream buffer = new BufferedInputStream(fis);
 			ObjectInputStream ois = new ObjectInputStream(buffer);
-			state = (SavedState) ois.readObject();
-			this.board = state.board;
+//			state = (SavedState) ois.readObject();
+//			this.board = state.board;
+			board = (Board) ois.readObject();
 			ois.close();
-		}
-		catch(FileNotFoundException e) {
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-		}catch(IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
-		}catch(ClassNotFoundException e) {
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
+	private void basicButtonMethod(JButton name, int x, int y, int width, int height) {
+		name.setBounds(x, y, width, height);
+		name.setBorderPainted(false);
+		name.setContentAreaFilled(false);
+		name.setFocusPainted(false);
+	}
+
+	private void buttonForEachStage(JButton name, int stagenum, ImageIcon img1, ImageIcon img2) {
+		name.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				name.setIcon(img1);
+				name.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				name.setIcon(img2);
+				name.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Board.currentLevel = stagenum - 1;
+				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
+
+				setContentPane(board);
+				board.restartLevel();
+				board.timer.start();
+				background.setVisible(false);
+			}
+		});
+	}
+
+	private void selectStageButtonMethod(JButton name) {
+		name.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				name.setIcon(stageSelectEntered);
+				name.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				name.setIcon(stageSelect);
+				name.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				background.setVisible(true);
+				setContentPane(background);
+			}
+		});
+	}
+
+	private void restartButtonMethod(JButton name) {
+		name.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				name.setIcon(restartEntered);
+				name.setCursor(new Cursor(Cursor.HAND_CURSOR));
+				// Music buttonEnteredMusic = new Music("buttonEnteredMusic.mp3", false);
+				// buttonEnteredMusic.start();
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				name.setIcon(restart);
+				name.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				setContentPane(board);
+				board.restartLevel();
+				board.timer.start();
+				board.setFocusable(true);
+				board.requestFocusInWindow();
+			}
+		});
+	}
+
 	private void initUI() {
 
 		setTitle("Sokoban");
@@ -141,10 +225,7 @@ public class Sokoban extends JFrame {// main 클래스
 		setLocationRelativeTo(null);// 프레임을 화면 가운데에 배치
 
 		// 종료버튼
-		quitButton.setBounds(490, 450, 250, 60);
-		quitButton.setBorderPainted(false);
-		quitButton.setContentAreaFilled(false);
-		quitButton.setFocusPainted(false);
+		basicButtonMethod(quitButton, 490, 550, 250, 60);
 		quitButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -171,10 +252,7 @@ public class Sokoban extends JFrame {// main 클래스
 		background.add(quitButton);
 
 		// 시작버튼
-		startButton.setBounds(430, 350, 380, 100);
-		startButton.setBorderPainted(false);
-		startButton.setContentAreaFilled(false);
-		startButton.setFocusPainted(false);
+		basicButtonMethod(startButton, 430, 350, 380, 100);
 		startButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -192,6 +270,7 @@ public class Sokoban extends JFrame {// main 클래스
 			public void mousePressed(MouseEvent e) {
 				startButton.setVisible(false);
 				quitButton.setVisible(false);
+				loadButton.setVisible(false);
 				introBackground = new ImageIcon("src/resources/nightcity.jpg");
 				background.add(backToMenuButton);
 				background.add(stage1Button);
@@ -210,44 +289,58 @@ public class Sokoban extends JFrame {// main 클래스
 		});
 		background.add(startButton);
 
-		//계속하기 버튼
-		continueButton.setBounds(430, 500, 380, 100);
-		continueButton.setBorderPainted(false);
-		continueButton.setContentAreaFilled(false);
-		continueButton.setFocusPainted(false);
-		continueButton.addMouseListener(new MouseAdapter() {
+		// 불러오기 버튼
+		basicButtonMethod(loadButton, 430, 450, 380, 100);
+		loadButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				continueButton.setIcon(continueButtonEnteredImage);
-				continueButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+				loadButton.setIcon(loadButtonEnteredImage);
+				loadButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
-				continueButton.setIcon(continueButtonBasicImage);
-				continueButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+				loadButton.setIcon(loadButtonBasicImage);
+				loadButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
 				startButton.setVisible(false);
 				quitButton.setVisible(false);
+				loadButton.setVisible(false);
 				introBackground = new ImageIcon("src/resources/nightcity.jpg");
 				background.add(backToMenuButton);
+				background.add(stage1Button);
+				background.add(stage2Button);
+				background.add(stage3Button);
+				background.add(stage4Button);
+				background.add(stage5Button);
+
+				stage1Button.setVisible(true);
+				stage2Button.setVisible(true);
+				stage3Button.setVisible(true);
+				stage4Button.setVisible(true);
+				stage5Button.setVisible(true);
 				backToMenuButton.setVisible(true);
-				
+
 				setContentPane(board);
 				loadGame();
 				board.requestFocusInWindow();
 			}
 		});
+		background.add(loadButton);
+
+		// 계속하기 버튼
+		continueButton.setBounds(430, 500, 380, 100);
+		continueButton.setBorderPainted(false);
+		continueButton.setContentAreaFilled(false);
+		continueButton.setFocusPainted(false);
+
 		background.add(continueButton);
-		
+
 		// backToMenu 버튼
-		backToMenuButton.setBounds(30, 20, 310, 100);
-		backToMenuButton.setBorderPainted(false);
-		backToMenuButton.setContentAreaFilled(false);
-		backToMenuButton.setFocusPainted(false);
+		basicButtonMethod(backToMenuButton, 30, 20, 310, 100);
 		backToMenuButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -263,8 +356,41 @@ public class Sokoban extends JFrame {// main 클래스
 
 			@Override
 			public void mousePressed(MouseEvent e) {
+				if (wasStarted) {
+					continueButton.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							continueButton.setIcon(continueButtonEnteredImage);
+							continueButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+						}
+
+						@Override
+						public void mouseExited(MouseEvent e) {
+							continueButton.setIcon(continueButtonBasicImage);
+							continueButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+						}
+
+						@Override
+						public void mousePressed(MouseEvent e) {
+							startButton.setVisible(false);
+							quitButton.setVisible(false);
+							continueButton.setVisible(false);
+							loadButton.setVisible(false);
+							introBackground = new ImageIcon("src/resources/nightcity.jpg");
+							background.add(backToMenuButton);
+							backToMenuButton.setVisible(true);
+							// loadGame();
+							setContentPane(board);
+							board.timer.start();
+
+							board.requestFocusInWindow();
+						}
+					});
+				}
 				startButton.setVisible(true);
 				quitButton.setVisible(true);
+				continueButton.setVisible(true);
+				loadButton.setVisible(true);
 				stage1Button.setVisible(false);
 				stage2Button.setVisible(false);
 				stage3Button.setVisible(false);
@@ -276,362 +402,56 @@ public class Sokoban extends JFrame {// main 클래스
 		});
 
 		// 스테이지1 버튼
-		stage1Button.setBounds(100, 300, 125, 44);
-		stage1Button.setBorderPainted(false);
-		stage1Button.setContentAreaFilled(false);
-		stage1Button.setFocusPainted(false);
-		stage1Button.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stage1Button.setIcon(stage1Entered);
-				stage1Button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stage1Button.setIcon(stage1Basic);
-				stage1Button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Board.currentLevel = 0;
-				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
-
-				setContentPane(board);
-				board.restartLevel();
-				board.timer.start();
-
-				background.setVisible(false);
-				stage1Button.setVisible(false);
-				stage2Button.setVisible(false);
-				stage3Button.setVisible(false);
-				stage4Button.setVisible(false);
-				stage5Button.setVisible(false);
-				
-			}
-		});
+		basicButtonMethod(stage1Button, 100, 300, 125, 44);
+		buttonForEachStage(stage1Button, 1, stage1Entered, stage1Basic);
 
 		// 스테이지2 버튼
-		stage2Button.setBounds(320, 300, 125, 44);
-		stage2Button.setBorderPainted(false);
-		stage2Button.setContentAreaFilled(false);
-		stage2Button.setFocusPainted(false);
-		stage2Button.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stage2Button.setIcon(stage2Entered);
-				stage2Button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stage2Button.setIcon(stage2Basic);
-				stage2Button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Board.currentLevel = 1;
-				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
-
-				setContentPane(board);
-				board.restartLevel();
-				board.timer.start();
-
-				background.setVisible(false);
-				stage1Button.setVisible(false);
-				stage2Button.setVisible(false);
-				stage3Button.setVisible(false);
-				stage4Button.setVisible(false);
-				stage5Button.setVisible(false);
-				
-				
-			}
-		});
+		basicButtonMethod(stage2Button, 320, 300, 125, 44);
+		buttonForEachStage(stage2Button, 2, stage2Entered, stage2Basic);
 
 		// 스테이지3 버튼
-		stage3Button.setBounds(540, 300, 125, 44);
-		stage3Button.setBorderPainted(false);
-		stage3Button.setContentAreaFilled(false);
-		stage3Button.setFocusPainted(false);
-		stage3Button.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stage3Button.setIcon(stage3Entered);
-				stage3Button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stage3Button.setIcon(stage3Basic);
-				stage3Button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Board.currentLevel = 2;
-				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
-
-				setContentPane(board);
-				board.restartLevel();
-				board.timer.start();
-
-				background.setVisible(false);
-				stage1Button.setVisible(false);
-				stage2Button.setVisible(false);
-				stage3Button.setVisible(false);
-				stage4Button.setVisible(false);
-				stage5Button.setVisible(false);
-				
-			}
-		});
+		basicButtonMethod(stage3Button, 540, 300, 125, 44);
+		buttonForEachStage(stage3Button, 3, stage3Entered, stage3Basic);
 
 		// 스테이지4 버튼
-		stage4Button.setBounds(760, 300, 125, 44);
-		stage4Button.setBorderPainted(false);
-		stage4Button.setContentAreaFilled(false);
-		stage4Button.setFocusPainted(false);
-		stage4Button.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stage4Button.setIcon(stage4Entered);
-				stage4Button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stage4Button.setIcon(stage4Basic);
-				stage4Button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Board.currentLevel = 3;
-				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
-
-				setContentPane(board);
-				board.restartLevel();
-				board.timer.start();
-
-				background.setVisible(false);
-				stage1Button.setVisible(false);
-				stage2Button.setVisible(false);
-				stage3Button.setVisible(false);
-				stage4Button.setVisible(false);
-				stage5Button.setVisible(false);
-				
-			}
-		});
+		basicButtonMethod(stage4Button, 760, 300, 125, 44);
+		buttonForEachStage(stage4Button, 4, stage4Entered, stage4Basic);
 
 		// 스테이지5 버튼
-		stage5Button.setBounds(980, 300, 125, 44);
-		stage5Button.setBorderPainted(false);
-		stage5Button.setContentAreaFilled(false);
-		stage5Button.setFocusPainted(false);
-		stage5Button.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stage5Button.setIcon(stage5Entered);
-				stage5Button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stage5Button.setIcon(stage5Basic);
-				stage5Button.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				Board.currentLevel = 4;
-				JOptionPane.showMessageDialog(board, "Highscore: \n" + Board.sm.getHighscoreString());
-
-				setContentPane(board);
-
-				board.restartLevel();
-				board.timer.start();
-
-				background.setVisible(false);
-				stage1Button.setVisible(false);
-				stage2Button.setVisible(false);
-				stage3Button.setVisible(false);
-				stage4Button.setVisible(false);
-				stage5Button.setVisible(false);
-				
-			}
-		});
+		basicButtonMethod(stage5Button, 980, 300, 125, 44);
+		buttonForEachStage(stage5Button, 5, stage5Entered, stage5Basic);
 
 		// 스테이지 선택 버튼(게임오버)
-		stageSelectButton.setBounds(450, 430, 350, 50);
-		stageSelectButton.setBorderPainted(false);
-		stageSelectButton.setContentAreaFilled(false);
-		stageSelectButton.setFocusPainted(false);
-		stageSelectButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stageSelectButton.setIcon(stageSelectEntered);
-				stageSelectButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stageSelectButton.setIcon(stageSelect);
-				stageSelectButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				background.setVisible(true);
-
-				setContentPane(background);
-
-				stage1Button.setVisible(true);
-				stage2Button.setVisible(true);
-				stage3Button.setVisible(true);
-				stage4Button.setVisible(true);
-				stage5Button.setVisible(true);
-
-			}
-		});
+		basicButtonMethod(stageSelectButton, 450, 430, 350, 50);
+		selectStageButtonMethod(stageSelectButton);
 
 		GameOver.add(stageSelectButton);
 
 		// 재시작 버튼(게임오버)
-		restartButton.setBounds(440, 500, 350, 50);
-		restartButton.setBorderPainted(false);
-		restartButton.setContentAreaFilled(false);
-		restartButton.setFocusPainted(false);
-		restartButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				restartButton.setIcon(restartEntered);
-				restartButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				restartButton.setIcon(restart);
-				restartButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-
-				board.restartLevel();
-				board.timer.start();
-				setContentPane(board);
-				board.setFocusable(true);
-				board.requestFocusInWindow();
-
-			}
-		});
+		basicButtonMethod(restartButton, 440, 500, 350, 50);
+		restartButtonMethod(restartButton);
 
 		GameOver.add(restartButton);
 
 		// 스테이지 선택 버튼(게임클리어)
-		stageSelectButton2.setBounds(450, 430, 350, 50);
-		stageSelectButton2.setBorderPainted(false);
-		stageSelectButton2.setContentAreaFilled(false);
-		stageSelectButton2.setFocusPainted(false);
-		stageSelectButton2.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				stageSelectButton2.setIcon(stageSelectEntered);
-				stageSelectButton2.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				stageSelectButton2.setIcon(stageSelect);
-				stageSelectButton2.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				background.setVisible(true);
-
-				setContentPane(background);
-
-				stage1Button.setVisible(true);
-				stage2Button.setVisible(true);
-				stage3Button.setVisible(true);
-				stage4Button.setVisible(true);
-				stage5Button.setVisible(true);
-			}
-		});
+		basicButtonMethod(stageSelectButton2, 450, 430, 350, 50);
+		selectStageButtonMethod(stageSelectButton2);
 
 		GameClear.add(stageSelectButton2);
 
 		// 재시작 버튼(게임클리어)
-		restartButton2.setBounds(440, 500, 350, 50);
-		restartButton2.setBorderPainted(false);
-		restartButton2.setContentAreaFilled(false);
-		restartButton2.setFocusPainted(false);
-		restartButton2.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				restartButton2.setIcon(restartEntered);
-				restartButton2.setCursor(new Cursor(Cursor.HAND_CURSOR));
-				// Music buttonEnteredMusic = new Music("buttonEnteredMusic.mp3", false);
-				// buttonEnteredMusic.start();
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-				restartButton2.setIcon(restart);
-				restartButton2.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				setContentPane(board);
-
-				board.restartLevel();
-				board.timer.start();
-				board.setFocusable(true);
-				board.requestFocusInWindow();
-
-			}
-		});
+		basicButtonMethod(restartButton2, 440, 500, 350, 50);
+		restartButtonMethod(restartButton2);
 
 		GameClear.add(restartButton2);
 
 		// 스테이지 선택 버튼(게임중)
-		inGameStageSelectButton.setBounds(30, 30, 350, 50);
-		inGameStageSelectButton.setBorderPainted(false);
-		inGameStageSelectButton.setContentAreaFilled(false);
-		inGameStageSelectButton.setFocusPainted(false);
-		inGameStageSelectButton.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				inGameStageSelectButton.setIcon(stageSelectEntered);
-				inGameStageSelectButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			}
+		basicButtonMethod(inGameStageSelectButton, 30, 30, 350, 50);
+		selectStageButtonMethod(inGameStageSelectButton);
 
-			@Override
-			public void mouseExited(MouseEvent e) {
-				inGameStageSelectButton.setIcon(stageSelect);
-				inGameStageSelectButton.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-				background.setVisible(true);
-
-				setContentPane(background);
-
-				stage1Button.setVisible(true);
-				stage2Button.setVisible(true);
-				stage3Button.setVisible(true);
-				stage4Button.setVisible(true);
-				stage5Button.setVisible(true);
-			}
-		});
-		
 		board.add(inGameStageSelectButton);
-		
-		//게임 저장 버튼(게임중)
+
+		// 게임 저장 버튼(게임중)
 		saveGameButton.setBounds(30, 100, 350, 50);
 		saveGameButton.setBorderPainted(false);
 		saveGameButton.setContentAreaFilled(false);
@@ -652,11 +472,11 @@ public class Sokoban extends JFrame {// main 클래스
 			@Override
 			public void mousePressed(MouseEvent e) {
 				saveGame();
-				JOptionPane.showMessageDialog(board, "Save Game");
+				JOptionPane.showMessageDialog(board, "Game Saved");
 			}
 		});
 		board.add(saveGameButton);
-		
+
 		setContentPane(background);
 
 		background.setLayout(null);
@@ -744,7 +564,7 @@ public class Sokoban extends JFrame {// main 클래스
 		this.repaint();
 	}
 
-	public static void main(String[] args){
+	public static void main(String[] args) {
 		EventQueue.invokeLater(() -> {
 			Sound sound = new Sound("src/resources/game.wav", -1);
 			Sokoban game = new Sokoban();

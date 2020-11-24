@@ -6,6 +6,8 @@ import javax.swing.ImageIcon;
 
 public class Enemy extends Actor {
 
+	private static final long serialVersionUID = 1L;
+	
 	public int dir = -1;
 	public int lastDir = -1;
 	

@@ -4,9 +4,10 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 
 public class Area extends Actor {//Actor클래스를 상속받는다.
-	//baggage를 놓으려는 공간
+	
+	private static final long serialVersionUID = 1L;
 
-    public Area(int x, int y) {
+	public Area(int x, int y) {
         super(x, y);//super메소드는 부모 클래스의 생성자를 호출할 때 사용된다.
         
         initArea();
